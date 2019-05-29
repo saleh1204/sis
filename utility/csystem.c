@@ -15,20 +15,22 @@
 #include "config.h"
 
 int
-util_csystem(s)
-char *s;
+    util_csystem(s) char *s;
 {
-    RETSIGTYPE (*istat)(), (*qstat)();
+    RETSIGTYPE(*istat)
+    (), (*qstat)();
 #if defined(_IBMR2) || defined(__osf__)
-    int status;    
+    int status;
 #else
-    union wait status;
+    int status;
+    // union wait status;
 #endif
     int pid, w, retval;
 
-    if ((pid = vfork()) == 0) {
-	(void) execl("/bin/csh", "csh", "-f", "-c", s, 0);
-	(void) _exit(127);
+    if ((pid = vfork()) == 0)
+    {
+        (void)execl("/bin/csh", "csh", "-f", "-c", s, 0);
+        (void)_exit(127);
     }
 
     /* Have the parent ignore interrupt and quit signals */
@@ -36,19 +38,23 @@ char *s;
     qstat = signal(SIGQUIT, SIG_IGN);
 
     while ((w = wait(&status)) != pid && w != -1)
-	    ;
-    if (w == -1) {		/* check for no children ?? */
-	retval = -1;
-    } else {
+        ;
+    if (w == -1)
+    { /* check for no children ?? */
+        retval = -1;
+    }
+    else
+    {
 #if defined(_IBMR2) || defined(__osf__)
-	retval = status;
+        retval = status;
 #else
-	retval = status.w_status;
+        // retval = status.w_status;
+        retval = status;
 #endif
     }
 
     /* Restore interrupt and quit signal handlers */
-    (void) signal(SIGINT, istat);
-    (void) signal(SIGQUIT, qstat);
+    (void)signal(SIGINT, istat);
+    (void)signal(SIGQUIT, qstat);
     return retval;
 }

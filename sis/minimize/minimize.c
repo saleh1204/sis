@@ -360,8 +360,8 @@ int max_lit;
 
 {
     pset_family Abar;
-    register pset p, p1, restrict;
-    register int i;
+	register pset p, p1, restrict_reg;
+	register int i;
     int max_i, min_set_ord, j;
 
     /* Check for no sets in the matrix -- complement is the universe */
@@ -393,15 +393,15 @@ int max_lit;
 	/* Select splitting variable as the variable which belongs to a set
 	 * of the smallest size, and which has greatest column count
 	 */
-	restrict = set_new(A->sf_size);
+	restrict_reg = set_new(A->sf_size);
 	min_set_ord = A->sf_size + 1;
 	foreachi_set(A, i, p) {
 	    if (SIZE(p) < min_set_ord) {
-		(void) set_copy(restrict, p);
-		min_set_ord = SIZE(p);
+			(void)set_copy(restrict_reg, p);
+			min_set_ord = SIZE(p);
 	    } else if (SIZE(p) == min_set_ord) {
-		(void) set_or(restrict, restrict, p);
-	    }
+			(void)set_or(restrict_reg, restrict_reg, p);
+		}
 	}
 
 	/* Check for no data (shouldn't happen ?) */
@@ -411,24 +411,25 @@ int max_lit;
 
 	/* Check for "essential" columns */
 	} else if (min_set_ord == 1) {
-	    i = set_ord(restrict);
-	    if (i > max_lit) {
+		i = set_ord(restrict_reg);
+		if (i > max_lit) {
 		Abar = A;
 		Abar->count = 0;
 	    } else {
-		Abar = ncp_unate_complement(ncp_abs_covered_many(A, restrict),
-							    max_lit-i);
-		sf_free(A);
-		foreachi_set(Abar, i, p) {
-		    (void) set_or(p, p, restrict);
+			Abar = ncp_unate_complement(ncp_abs_covered_many(A, restrict_reg),
+										max_lit - i);
+			sf_free(A);
+			foreachi_set(Abar, i, p)
+			{
+				(void)set_or(p, p, restrict_reg);
 		}
 	    }
 
 	/* else, recur as usual */
 	} else {
-	    max_i = ncp_abs_select_restricted(A, restrict);
+		max_i = ncp_abs_select_restricted(A, restrict_reg);
 
-	    /* Select those rows of A which are not covered by max_i,
+		/* Select those rows of A which are not covered by max_i,
 	     * recursively find all minimal covers of these rows, and
 	     * then add back in max_i
 	     */
@@ -448,8 +449,8 @@ int max_lit;
 
 	    Abar = sf_append(Abar, ncp_unate_complement(A, max_lit));
 	}
-	set_free(restrict);
-    }
+	set_free(restrict_reg);
+	}
 
     return Abar;
 }
@@ -484,16 +485,16 @@ register pset pick_set;
  *  1 / (set_ord(p) - 1).
  */
 static int
-ncp_abs_select_restricted(A, restrict)
-pset_family A;
-pset restrict;
+	ncp_abs_select_restricted(A, restrict_reg)
+		pset_family A;
+pset restrict_reg;
 {
     register int i, best_var, best_count, *count;
 
     /* Sum the elements in these columns */
-    count = sf_count_restricted(A, restrict);
+	count = sf_count_restricted(A, restrict_reg);
 
-    /* Find which variable has maximum weight */
+	/* Find which variable has maximum weight */
     best_var = -1;
     best_count = 0;
     for(i = 0; i < A->sf_size; i++) {
